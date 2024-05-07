@@ -36,7 +36,8 @@
     if (@available(iOS 14.0, *)) {
         if ([NSProcessInfo processInfo].isiOSAppOnMac)
         {
-            return NO;
+            info.isJailbroken = NO;
+            return info;
         }
     }
     FILE *file = fopen("/Applications/Cydia.app", "r");
