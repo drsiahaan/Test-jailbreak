@@ -24,7 +24,12 @@
 
 @interface DTTJailbreakDetection : NSObject
 
-+ (BOOL)isJailbroken;
-+ (BOOL)isJailbrokenWithCallback:(void (^)(NSString *path))callback;
+typedef struct {
+    BOOL isJailbroken;
+    NSString *jailbreakPath;
+} JailbreakInfo;
+
++ (JailbreakInfo)checkJailbreakStatus;
+
 
 @end
