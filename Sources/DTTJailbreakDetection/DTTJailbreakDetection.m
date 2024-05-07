@@ -24,92 +24,61 @@
 
 @implementation DTTJailbreakDetection
 
-+ (JailbreakInfo)checkJailbreakStatus {
-    
-    JailbreakInfo info;
-    info.isJailbroken = NO;
-    info.jailbreakPath = @"";
-    
-    
++ (BOOL)isJailbroken
+{
 #if !(TARGET_IPHONE_SIMULATOR)
-
+    
     if (@available(iOS 14.0, *)) {
         if ([NSProcessInfo processInfo].isiOSAppOnMac)
         {
-            info.isJailbroken = NO;
-            return info;
+            return NO;
         }
     }
     FILE *file = fopen("/Applications/Cydia.app", "r");
     if (file) {
         fclose(file);
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/Applications/Cydia.app";
-        return info;
+        return YES;
     }
     file = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r");
     if (file) {
         fclose(file);
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/Library/MobileSubstrate/MobileSubstrate.dylib";
-        return info;
+        return YES;
     }
     file = fopen("/bin/bash", "r");
     if (file) {
         fclose(file);
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/bin/bash";
-        return info;
-        
+        return YES;
     }
     file = fopen("/usr/sbin/sshd", "r");
     if (file) {
         fclose(file);
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/usr/sbin/sshd";
-        return info;
+        return YES;
     }
     file = fopen("/etc/apt", "r");
     if (file) {
         fclose(file);
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/etc/apt";
-        return info;
+        return YES;
     }
     file = fopen("/usr/bin/ssh", "r");
     if (file) {
         fclose(file);
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/usr/bin/ssh";
-        return info;
+        return YES;
     }
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
     if ([fileManager fileExistsAtPath:@"/Applications/Cydia.app"]) {
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/Applications/Cydia.app";
-        return info;
+        return YES;
     } else if ([fileManager fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"]) {
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/Library/MobileSubstrate/MobileSubstrate.dylib";
-        return info;
+        return YES;
     } else if ([fileManager fileExistsAtPath:@"/bin/bash"]) {
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/bin/bash";
-        return info;
+        return YES;
     } else if ([fileManager fileExistsAtPath:@"/usr/sbin/sshd"]) {
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/usr/sbin/sshd";
-        return info;
+        return YES;
     } else if ([fileManager fileExistsAtPath:@"/etc/apt"]) {
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/etc/apt";
-        return info;
+        return YES;
     } else if ([fileManager fileExistsAtPath:@"/usr/bin/ssh"]) {
-        info.isJailbroken = YES;
-        info.jailbreakPath = @"/usr/bin/ssh";
-        return info;
+        return YES;
     }
     
     // Check if the app can access outside of its sandbox
@@ -118,21 +87,94 @@
     [string writeToFile:@"/private/jailbreak.txt" atomically:YES encoding:NSUTF8StringEncoding error:&error];
     if (!error) {
         [fileManager removeItemAtPath:@"/private/jailbreak.txt" error:nil];
-        info.isJailbroken = YES;
-        return info;
+        return YES;
     }
     
     // Check if the app can open a Cydia's URL scheme
     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"cydia://package/com.example.package"]]) {
-        info.isJailbroken = YES;
-        return info;
+        return YES;
     }
-    
     
 #endif
     
-    return info;
+    return NO;
+}
+
++ (NSString *)jailbrokenFilePath
+{
+    
+#if !(TARGET_IPHONE_SIMULATOR)
+    
+    if (@available(iOS 14.0, *)) {
+        if ([NSProcessInfo processInfo].isiOSAppOnMac)
+        {
+            return nil;
+        }
+    }
+    FILE *file = fopen("/Applications/Cydia.app", "r");
+    if (file) {
+        fclose(file);
+        return @"/Applications/Cydia.app";
+    }
+    file = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r");
+    if (file) {
+        fclose(file);
+        return @"/Library/MobileSubstrate/MobileSubstrate.dylib";
+    }
+    file = fopen("/bin/bash", "r");
+    if (file) {
+        fclose(file);
+        return @"/bin/bash";
+    }
+    file = fopen("/usr/sbin/sshd", "r");
+    if (file) {
+        fclose(file);
+        return @"/usr/sbin/sshd";
+    }
+    file = fopen("/etc/apt", "r");
+    if (file) {
+        fclose(file);
+        return @"/etc/apt";
+    }
+    file = fopen("/usr/bin/ssh", "r");
+    if (file) {
+        fclose(file);
+        return @"/usr/bin/ssh";
+    }
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    if ([fileManager fileExistsAtPath:@"/Applications/Cydia.app"]) {
+        return @"/Applications/Cydia.app";
+    } else if ([fileManager fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"]) {
+        return @"/Library/MobileSubstrate/MobileSubstrate.dylib";
+    } else if ([fileManager fileExistsAtPath:@"/bin/bash"]) {
+        return @"/bin/bash";
+    } else if ([fileManager fileExistsAtPath:@"/usr/sbin/sshd"]) {
+        return @"/usr/sbin/sshd";
+    } else if ([fileManager fileExistsAtPath:@"/etc/apt"]) {
+        return @"/etc/apt";
+    } else if ([fileManager fileExistsAtPath:@"/usr/bin/ssh"]) {
+        return @"/usr/bin/ssh";
+    }
+    
+    // Check if the app can access outside of its sandbox
+    NSError *error = nil;
+    NSString *string = @".";
+    [string writeToFile:@"/private/jailbreak.txt" atomically:YES encoding:NSUTF8StringEncoding error:&error];
+    if (!error) {
+        [fileManager removeItemAtPath:@"/private/jailbreak.txt" error:nil];
+        return @"/private/jailbreak.txt";
+    }
+    
+    // Check if the app can open a Cydia's URL scheme
+    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"cydia://package/com.example.package"]]) {
+        return @"cydia://package/com.example.package";
+    }
+    
+#endif
+    
+    return nil;
 }
 
 @end
-
