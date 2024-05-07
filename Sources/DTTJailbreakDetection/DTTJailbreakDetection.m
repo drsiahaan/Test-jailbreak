@@ -27,7 +27,7 @@
 + (BOOL)isJailbroken
 {
 #if !(TARGET_IPHONE_SIMULATOR)
-
+    
     if (@available(iOS 14.0, *)) {
         if ([NSProcessInfo processInfo].isiOSAppOnMac)
         {
@@ -48,6 +48,7 @@
     if (file) {
         fclose(file);
         return YES;
+        
     }
     file = fopen("/usr/sbin/sshd", "r");
     if (file) {
@@ -66,7 +67,7 @@
     }
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
-
+    
     if ([fileManager fileExistsAtPath:@"/Applications/Cydia.app"]) {
         return YES;
     } else if ([fileManager fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"]) {
@@ -94,9 +95,128 @@
     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"cydia://package/com.example.package"]]) {
         return YES;
     }
-
+    
 #endif
+    
+    return NO;
+}
 
++ (BOOL)isJailbrokenWithCallback:(void (^)(NSString *path))callback 
+{
+#if !(TARGET_IPHONE_SIMULATOR)
+    
+    if (@available(iOS 14.0, *)) {
+        if ([NSProcessInfo processInfo].isiOSAppOnMac)
+        {
+            return NO;
+        }
+    }
+    FILE *file = fopen("/Applications/Cydia.app", "r");
+    if (file) {
+        if (callback) {
+                      callback("/Applications/Cydia.app");
+                  }
+        fclose(file);
+        return YES;
+    }
+    file = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r");
+    if (file) {
+        if (callback) {
+                      callback("/Library/MobileSubstrate/MobileSubstrate.dylib");
+                  }
+        fclose(file);
+        return YES;
+    }
+    file = fopen("/bin/bash", "r");
+    if (file) {
+        if (callback) {
+                      callback("/bin/bash");
+                  }
+        fclose(file);
+        return YES;
+        
+    }
+    file = fopen("/usr/sbin/sshd", "r");
+    if (file) {
+        if (callback) {
+                      callback("/usr/sbin/sshd");
+                  }
+        fclose(file);
+        return YES;
+    }
+    file = fopen("/etc/apt", "r");
+    if (file) {
+        if (callback) {
+                      callback("/etc/apt");
+                  }
+        fclose(file);
+        return YES;
+    }
+    file = fopen("/usr/bin/ssh", "r");
+    if (file) {
+        if (callback) {
+                      callback("/usr/bin/ssh");
+                  }
+        fclose(file);
+        return YES;
+    }
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    if ([fileManager fileExistsAtPath:@"/Applications/Cydia.app"]) {
+        if (callback) {
+                      callback("/Applications/Cydia.app");
+                  }
+        return YES;
+    } else if ([fileManager fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"]) {
+        if (callback) {
+                      callback("/Library/MobileSubstrate/MobileSubstrate.dylib");
+                  }
+        return YES;
+    } else if ([fileManager fileExistsAtPath:@"/bin/bash"]) {
+        if (callback) {
+                      callback("/bin/bash");
+                  }
+        return YES;
+    } else if ([fileManager fileExistsAtPath:@"/usr/sbin/sshd"]) {
+        if (callback) {
+                      callback("/usr/sbin/sshd");
+                  }
+        return YES;
+    } else if ([fileManager fileExistsAtPath:@"/etc/apt"]) {
+        if (callback) {
+                      callback("/etc/apt");
+                  }
+        return YES;
+    } else if ([fileManager fileExistsAtPath:@"/usr/bin/ssh"]) {
+        if (callback) {
+                      callback("/usr/bin/ssh");
+                  }
+        return YES;
+    }
+    
+    // Check if the app can access outside of its sandbox
+    NSError *error = nil;
+    NSString *string = @".";
+    [string writeToFile:@"/private/jailbreak.txt" atomically:YES encoding:NSUTF8StringEncoding error:&error];
+    if (!error) {
+        [fileManager removeItemAtPath:@"/private/jailbreak.txt" error:nil];
+        if (callback) {
+                      callback("/private/jailbreak.txt");
+                  }
+        return YES;
+    }
+    
+    // Check if the app can open a Cydia's URL scheme
+    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"cydia://package/com.example.package"]]) {
+        if (callback) {
+                      callback("cydia://package/com.example.package");
+                  }
+        return YES;
+    }
+    
+#endif
+    
     return NO;
 }
 
